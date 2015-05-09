@@ -50,6 +50,7 @@ public class ParticleSystem {
     private float mParticlesPerMilisecond;
     private int mActivatedParticles;
     private long mEmitingTime;
+    private long mStartDelay;
 
     private List<ParticleModifier> mModifiers;
     private List<ParticleInitializer> mInitializers;
@@ -147,10 +148,6 @@ public class ParticleSystem {
         }
     }
 
-    public float dpToPx(float dp) {
-        return dp * mDpToPxScale;
-    }
-
     /**
      * Utility constructor that receives a Bitmap
      *
@@ -206,6 +203,10 @@ public class ParticleSystem {
         for (int i = 0; i < mMaxParticles; i++) {
             mParticles.add(new AnimatedParticle(animation));
         }
+    }
+
+    public float dpToPx(float dp) {
+        return dp * mDpToPxScale;
     }
 
     /**
@@ -304,10 +305,10 @@ public class ParticleSystem {
      * @param particlesPerSecond Number of particles per second that will be emited (evenly distributed)
      * @param emitingTime        time the emiter will be emiting particles
      */
-    public void emitWithGravity(View emiter, int gravity, int particlesPerSecond, int emitingTime) {
+    public void emitWithGravity(View emiter, int gravity, int particlesPerSecond, int emitingTime, long startDelay) {
         // Setup emiter
         configureEmiter(emiter, gravity);
-        startEmiting(particlesPerSecond, emitingTime);
+        startEmiting(particlesPerSecond, emitingTime, startDelay);
     }
 
     /**
@@ -319,7 +320,7 @@ public class ParticleSystem {
      * @param emitingTime        time the emiter will be emiting particles
      */
     public void emit(View emiter, int particlesPerSecond, int emitingTime) {
-        emitWithGravity(emiter, Gravity.CENTER, particlesPerSecond, emitingTime);
+        emitWithGravity(emiter, Gravity.CENTER, particlesPerSecond, emitingTime, 0);
     }
 
     /**
@@ -367,9 +368,9 @@ public class ParticleSystem {
         }, 0, TIMMERTASK_INTERVAL);
     }
 
-    public void emit(int emitterX, int emitterY, int particlesPerSecond, int emitingTime) {
+    public void emit(int emitterX, int emitterY, int particlesPerSecond, int emitingTime, long startDelay) {
         configureEmiter(emitterX, emitterY);
-        startEmiting(particlesPerSecond, emitingTime);
+        startEmiting(particlesPerSecond, emitingTime, startDelay);
     }
 
     private void configureEmiter(int emitterX, int emitterY) {
@@ -380,7 +381,7 @@ public class ParticleSystem {
         mEmiterYMax = mEmiterYMin;
     }
 
-    private void startEmiting(int particlesPerSecond, int emitingTime) {
+    private void startEmiting(int particlesPerSecond, int emitingTime, long startDelay) {
         mActivatedParticles = 0;
         mParticlesPerMilisecond = particlesPerSecond / 1000f;
         // Add a full size view to the parent view
@@ -390,7 +391,7 @@ public class ParticleSystem {
         mDrawingView.setParticles(mActiveParticles);
         updateParticlesBeforeStartTime(particlesPerSecond);
         mEmitingTime = emitingTime;
-        startAnimator(new LinearInterpolator(), emitingTime + mTimeToLive);
+        startAnimator(new LinearInterpolator(), emitingTime + mTimeToLive, startDelay);
     }
 
     public void emit(int emitterX, int emitterY, int particlesPerSecond) {
@@ -434,11 +435,12 @@ public class ParticleSystem {
         mDrawingView.setParticles(mActiveParticles);
         // We start a property animator that will call us to do the update
         // Animate from 0 to timeToLiveMax
-        startAnimator(interpolator, mTimeToLive);
+        startAnimator(interpolator, mTimeToLive, 0);
     }
 
-    private void startAnimator(Interpolator interpolator, long animnationTime) {
+    private void startAnimator(Interpolator interpolator, long animnationTime, long startDelay) {
         mAnimator = ValueAnimator.ofInt(0, (int) animnationTime);
+        mAnimator.setStartDelay(startDelay);
         mAnimator.setDuration(animnationTime);
         mAnimator.addUpdateListener(new AnimatorUpdateListener() {
             @Override
