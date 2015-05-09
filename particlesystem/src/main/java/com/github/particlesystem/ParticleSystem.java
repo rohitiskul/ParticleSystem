@@ -50,7 +50,6 @@ public class ParticleSystem {
     private float mParticlesPerMilisecond;
     private int mActivatedParticles;
     private long mEmitingTime;
-    private long mStartDelay;
 
     private List<ParticleModifier> mModifiers;
     private List<ParticleInitializer> mInitializers;
@@ -330,9 +329,9 @@ public class ParticleSystem {
      * @param emiter             View from which center the particles will be emited
      * @param particlesPerSecond Number of particles per second that will be emited (evenly distributed)
      */
-    public void emit(View emiter, int particlesPerSecond) {
+    public void emit(View emiter, int particlesPerSecond, long startDelay) {
         // Setup emiter
-        emitWithGravity(emiter, Gravity.CENTER, particlesPerSecond);
+        emitWithGravity(emiter, Gravity.CENTER, particlesPerSecond, startDelay);
     }
 
     /**
@@ -343,13 +342,13 @@ public class ParticleSystem {
      * @param gravity            Which position among the view the emission takes place
      * @param particlesPerSecond Number of particles per second that will be emited (evenly distributed)
      */
-    public void emitWithGravity(View emiter, int gravity, int particlesPerSecond) {
+    public void emitWithGravity(View emiter, int gravity, int particlesPerSecond, long startDelay) {
         // Setup emiter
         configureEmiter(emiter, gravity);
-        startEmiting(particlesPerSecond);
+        startEmiting(particlesPerSecond, startDelay);
     }
 
-    private void startEmiting(int particlesPerSecond) {
+    private void startEmiting(int particlesPerSecond, long startDelay) {
         mActivatedParticles = 0;
         mParticlesPerMilisecond = particlesPerSecond / 1000f;
         // Add a full size view to the parent view
@@ -365,7 +364,7 @@ public class ParticleSystem {
                 onUpdate(mCurrentTime);
                 mCurrentTime += TIMMERTASK_INTERVAL;
             }
-        }, 0, TIMMERTASK_INTERVAL);
+        }, startDelay, TIMMERTASK_INTERVAL);
     }
 
     public void emit(int emitterX, int emitterY, int particlesPerSecond, int emitingTime, long startDelay) {
@@ -396,7 +395,7 @@ public class ParticleSystem {
 
     public void emit(int emitterX, int emitterY, int particlesPerSecond) {
         configureEmiter(emitterX, emitterY);
-        startEmiting(particlesPerSecond);
+        startEmiting(particlesPerSecond, 0);
     }
 
 
